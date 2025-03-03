@@ -282,7 +282,7 @@ double g_lastSaveTime = -1.0;
 			// For fast-forwarding, otherwise they may be useless and too close.
 			double now = time_now_d();
 			double diff = now - rewindLastTime_;
-			if (diff < g_Config.iRewindSnapshotInterval)
+			if (diff < g_Config.iRewindSnapshotInterval /2)
 				return;
 
 			DEBUG_LOG(Log::SaveState, "Saving rewind state");
