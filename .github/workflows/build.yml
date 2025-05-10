@@ -34,7 +34,7 @@ jobs:
         submodules: recursive
 
     - name: Install Clang
-      uses: ilammy/setup-clang@v1
+      uses: ilammy/setup-clang@v1.12.0  # 替换为具体可用的版本号
       with:
         version: '14'  # 可根据需要调整 Clang 版本
 
