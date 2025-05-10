@@ -320,6 +320,7 @@ cd..\..\..</Command>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OmitFramePointers>false</OmitFramePointers>
       <AdditionalIncludeDirectories>miniupnp/miniupnpc/include;miniupnp-build</AdditionalIncludeDirectories>
+      <AdditionalOptions>$(EXTERNAL_COMPILE_OPTIONS) /arch:AVX2</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
