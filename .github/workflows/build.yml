@@ -33,12 +33,20 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
+    - name: Install Clang via winget
+      shell: powershell
+      run: |
+        winget install -e --id LLVM.LLVM
+        $env:PATH = "C:\Program Files\LLVM\bin;$env:PATH"
+        [Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::Machine)
 
-    - name: Build Windows
+    - name: Build Windows with Clang
       working-directory: ${{ env.GITHUB_WORKSPACE }}
-      run: msbuild /m /p:TrackFileAccess=false /p:Configuration=${{ env.BUILD_CONFIGURATION }} /p:Platform=x64 Windows/PPSSPP.sln
+      shell: cmd
+      run: |
+        set "CC=clang.exe"
+        set "CXX=clang++.exe"
+        msbuild /m /p:TrackFileAccess=false /p:Configuration=${{ env.BUILD_CONFIGURATION }} /p:Platform=x64 /p:PreferredToolArchitecture=x64 /p:PlatformToolset=ClangCL Windows/PPSSPP.sln
 
     - name: Package build
       working-directory: ${{ env.GITHUB_WORKSPACE }}
@@ -49,7 +57,7 @@ jobs:
         cp Windows/*.bat ppsspp/
         cp -r assets ppsspp/assets
 
-    - name: Package headless (non-Win32)
+    - name: Package headless
       run: cp Windows/x64/Release/*.exe ppsspp/
 
     - name: Upload build
