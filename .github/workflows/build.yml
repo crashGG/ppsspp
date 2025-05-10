@@ -33,10 +33,12 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install Clang
-      uses: ilammy/setup-clang@v1.12.0  # 替换为具体可用的版本号
-      with:
-        version: '14'  # 可根据需要调整 Clang 版本
+    - name: Install Clang via winget
+      shell: powershell
+      run: |
+        winget install -e --id LLVM.LLVM
+        $env:PATH = "C:\Program Files\LLVM\bin;$env:PATH"
+        [Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::Machine)
 
     - name: Build Windows with Clang
       working-directory: ${{ env.GITHUB_WORKSPACE }}
