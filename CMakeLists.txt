@@ -998,12 +998,18 @@ if(USE_FFMPEG)
 		endif()
 	endif()
 
-	find_package(FFmpeg REQUIRED avcodec avformat avutil swresample swscale)
-	# Check if we need to use avcodec_(alloc|free)_frame instead of av_frame_(alloc|free)
-	# Check if we need to use const AVCodec
-	set(CMAKE_REQUIRED_INCLUDES ${FFmpeg_INCLUDE_avcodec};${FFmpeg_INCLUDE_avformat})
-	set(CMAKE_REQUIRED_LIBRARIES FFmpeg::avcodec;FFmpeg::avformat)
-	set(CMAKE_REQUIRED_FLAGS "-pedantic -Wall -Werror -Wno-unused-variable")
+	if(MINGW)
+		find_package(PkgConfig REQUIRED)
+		pkg_check_modules(FFmpeg REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswresample libswscale)
+		set(HAVE_LIBAVCODEC_CONST_AVCODEC ON)
+	else()
+		find_package(FFmpeg REQUIRED avcodec avformat avutil swresample swscale)
+		# Check if we need to use avcodec_(alloc|free)_frame instead of av_frame_(alloc|free)
+		# Check if we need to use const AVCodec
+		set(CMAKE_REQUIRED_INCLUDES ${FFmpeg_INCLUDE_avcodec};${FFmpeg_INCLUDE_avformat})
+		set(CMAKE_REQUIRED_LIBRARIES FFmpeg::avcodec;FFmpeg::avformat)
+		set(CMAKE_REQUIRED_FLAGS "-pedantic -Wall -Werror -Wno-unused-variable")
+	endif()
 	check_cxx_source_compiles("extern \"C\" {
 		#include <libavcodec/avcodec.h>
 		#include <libavformat/avformat.h>
@@ -1210,6 +1216,7 @@ else()
 			ext/libzip/zip_random_unix.c
 		)
 	endif()
+	target_compile_definitions(libzip PRIVATE HAVE_STDBOOL_H)
 	target_link_libraries(libzip)
 	include_directories(ext/libzip)
 	set(LIBZIP_LIBRARY libzip)
@@ -2451,7 +2458,7 @@ endif()
 #	target_link_libraries(native X11-xcb X11)
 #endif()
 
-set(GlslangLibs glslang OGLCompiler OSDependent SPIRV spirv-cross-glsl)
+set(GlslangLibs glslang OSDependent SPIRV spirv-cross-glsl)
 
 if (ENABLE_SPVREMAPPER)
 	list(APPEND GlslangLibs SPVRemapper)
@@ -2498,14 +2505,18 @@ if(FFmpeg_FOUND)
 	endif()
 	set_target_properties(${CoreLibName} PROPERTIES NO_SYSTEM_FROM_IMPORTED true)
 	target_include_directories(${CoreLibName} BEFORE PUBLIC ${FFmpeg_INCLUDE_avcodec} ${FFmpeg_INCLUDE_avformat})
-	target_link_libraries(${CoreLibName}
-		FFmpeg::avcodec
-		FFmpeg::avformat
-		FFmpeg::avutil
-		FFmpeg::swresample
-		FFmpeg::swscale
-		${ZLIB_LIBRARY}
-	)
+	if(MINGW)
+		target_link_libraries(${CoreLibName} PkgConfig::FFmpeg ${ZLIB_LIBRARY})
+	else()
+		target_link_libraries(${CoreLibName}
+			FFmpeg::avcodec
+			FFmpeg::avformat
+			FFmpeg::avutil
+			FFmpeg::swresample
+			FFmpeg::swscale
+			${ZLIB_LIBRARY}
+		)
+	endif()
 endif()
 
 # Discord integration
@@ -2911,9 +2922,9 @@ endif()
 
 # installs
 if(NOT ANDROID)
-	file(INSTALL ${BigFontAssets} DESTINATION assets)
-	file(INSTALL ${NativeAssets} DESTINATION assets)
-	file(INSTALL assets/flash0 DESTINATION assets)
+	# file(INSTALL ${BigFontAssets} DESTINATION assets)
+	# file(INSTALL ${NativeAssets} DESTINATION assets)
+	# file(INSTALL assets/flash0 DESTINATION assets)
 endif()
 # packaging and code signing
 if(IOS AND NOT LIBRETRO)
