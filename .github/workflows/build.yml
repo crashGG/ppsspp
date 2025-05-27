@@ -52,7 +52,7 @@ jobs:
     - name: Build Windows x64 with GCC and CMake
       if: matrix.platform == 'x64'
       shell: msys2 {0}
-      working-directory: ppsspp
+      working-directory: .
       run: |
         mkdir build
         cd build
